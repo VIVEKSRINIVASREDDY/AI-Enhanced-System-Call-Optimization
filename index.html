@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI-Enhanced Syscall Optimizer</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #2563eb;
+            --secondary-color: #1e40af;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --text-primary: #1f2937;
+            --text-secondary: #4b5563;
+            --bg-primary: #f3f4f6;
+            --bg-secondary: #ffffff;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #f6f7f9 0%, #e9ecef 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--bg-secondary);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: white;
+            padding: 30px;
+            margin-bottom: 30px;
+            border-radius: 24px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(37, 99, 235, 0.2);
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent 45%, rgba(255, 255, 255, 0.1) 50%, transparent 55%);
+            animation: shine 3s infinite;
+        }
+
+        @keyframes shine {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+
+        .header-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+
+        .header-stats {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            position: relative;
+        }
+
+        .header-stat {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 12px 20px;
+            border-radius: 16px;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .header-stat:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-stat.optimized {
+            background: rgba(16, 185, 129, 0.2);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .status-box {
+            background: linear-gradient(135deg, #e8f5e9, #c8e6c9);
+            padding: 25px;
+            border-radius: 16px;
+            margin: 20px 0;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .status-indicator.running {
+            background-color: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.stopped {
+            background-color: var(--danger-color);
+        }
+
+        .status-text {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-left: 8px;
+        }
+
+        .status-text.running {
+            color: var(--success-color);
+        }
+
+        .status-text.stopped {
+            color: var(--danger-color);
+        }
+
+        .syscall-output {
+            font-family: 'Fira Code', monospace;
+            background: linear-gradient(135deg, #1a1a1a, #2d2d2d);
+            color: #e5e7eb;
+            padding: 20px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 1rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .syscall-output::before {
+            content: '>';
+            position: absolute;
+            left: 15px;
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin: 25px auto;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, var(--danger-color), #dc2626);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.2);
+            position: relative;
+            overflow: hidden;
+            min-width: 150px;
+        }
+
+        .control-button.start {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+        }
+
+        .control-button.start:hover {
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .control-button.stop:hover {
+            box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+        }
+
+        .control-button:active {
+            transform: translateY(1px);
+        }
+
+        .control-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .last-update {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .syscall-output.updated {
+            animation: highlight 0.5s ease;
+        }
+
+        @keyframes highlight {
+            0% { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); }
+            50% { background: linear-gradient(135deg, #2d2d2d, #3d3d3d); }
+            100% { background: linear-gradient(135deg, #1a1a1a, #2d2d2d); }
+        }
+
+        /* Add responsive design */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            .header-title {
+                font-size: 2rem;
+            }
+
+            .header-stat {
+                padding: 10px 15px;
+                font-size: 0.9rem;
+            }
+
+            .container {
+                padding: 20px;
+            }
+        }
+    </style>
+    <script>
+        let isRunning = true;
+        let updateInterval;
+
+        async function fetchSyscall() {
+            try {
+                let response = await fetch("http://127.0.0.1:5000/get_syscall");
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                let data = await response.json();
+                const outputElement = document.getElementById("syscall-output");
+                outputElement.innerText = data.syscall;
+                
+                if (data.is_running) {
+                    outputElement.classList.add('updated');
+                    setTimeout(() => outputElement.classList.remove('updated'), 500);
+                    document.getElementById("last-update").innerText = new Date().toLocaleTimeString();
+                }
+                
+                document.getElementById("total-syscalls").innerText = data.total_syscalls;
+                document.getElementById("performance-gain").innerText = data.performance_gain + '%';
+                document.getElementById("optimized-count").innerText = data.optimized_count || 0;
+
+                isRunning = data.is_running;
+                updateControlButtons();
+            } catch (error) {
+                console.log("Waiting for server connection...");
+                document.getElementById("syscall-output").innerText = "Waiting for server connection...";
+                document.getElementById("status-indicator").className = 'status-indicator stopped';
+                document.getElementById("status-text").textContent = 'Waiting for Server';
+                document.getElementById("status-text").className = 'status-text stopped';
+            }
+        }
+
+        async function controlSimulation(action) {
+            try {
+                const response = await fetch("http://127.0.0.1:5000/control", {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ action })
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                isRunning = data.is_running;
+                updateControlButtons();
+            } catch (error) {
+                console.log("Server connection error");
+                document.getElementById("status-indicator").className = 'status-indicator stopped';
+                document.getElementById("status-text").textContent = 'Server Error';
+                document.getElementById("status-text").className = 'status-text stopped';
+            }
+        }
+
+        function updateControlButtons() {
+            const startButton = document.getElementById('start-button');
+            const stopButton = document.getElementById('stop-button');
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            
+            if (isRunning) {
+                startButton.disabled = true;
+                stopButton.disabled = false;
+                statusIndicator.className = 'status-indicator running';
+                statusText.textContent = 'Running';
+                statusText.className = 'status-text running';
+            } else {
+                startButton.disabled = false;
+                stopButton.disabled = true;
+                statusIndicator.className = 'status-indicator stopped';
+                statusText.textContent = 'Stopped';
+                statusText.className = 'status-text stopped';
+            }
+        }
+
+        // Start the update interval with a delay to allow server to start
+        setTimeout(() => {
+            updateInterval = setInterval(fetchSyscall, 1000);
+        }, 2000);
+
+        // Clean up interval on page unload
+        window.addEventListener('beforeunload', () => {
+            clearInterval(updateInterval);
+        });
+    </script>
+</head>
+<body>
+    <div class="header">
+        <div class="header-title">AI-Enhanced Syscall Optimizer</div>
+        <div class="header-stats">
+            <div class="header-stat">
+                <span>🔄</span>
+                <span id="total-syscalls">0</span> Syscalls
+            </div>
+            <div class="header-stat optimized">
+                <span>⚡</span>
+                <span id="optimized-count">0</span> Optimized
+            </div>
+            <div class="header-stat">
+                <span>📈</span>
+                <span id="performance-gain">0%</span> Gain
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="status-box">
+            <div>
+                <span id="status-indicator" class="status-indicator running"></span>
+                <span id="status-text" class="status-text running">Running</span>
+            </div>
+            <div class="last-update">Last Update: <span id="last-update">Waiting...</span></div>
+        </div>
+
+        <div id="syscall-output" class="syscall-output">Waiting for data...</div>
+
+        <div class="control-buttons">
+            <button id="start-button" class="control-button start" onclick="controlSimulation('start')" disabled>
+                Start Simulation
+            </button>
+            <button id="stop-button" class="control-button stop" onclick="controlSimulation('stop')">
+                Stop Simulation
+            </button>
+        </div>
+    </div>
+</body>
+</html>
